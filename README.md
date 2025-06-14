@@ -5,6 +5,9 @@
 - https://repo.craftsblock.de/#/experimental/de/craftsblock/craftsnet/modules/security
 - https://repo.craftsblock.de/#/releases/de/craftsblock/craftscore
 
+# Client Repository
+## https://github.com/WinniePatGG/WinnieClient
+
 ## 🚀 Getting Started
 
 ### Build & Run
