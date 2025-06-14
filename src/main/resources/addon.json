@@ -1,4 +1,7 @@
 {
   "name": "Account Server",
-  "main": "de.winniepat.accountserver.AccountServer"
+  "main": "de.winniepat.accountserver.AccountServer",
+  "depends": [
+    "CNetSecurity"
+  ]
 }
