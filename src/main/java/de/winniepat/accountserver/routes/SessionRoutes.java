@@ -53,7 +53,7 @@ public class SessionRoutes implements RequestHandler {
                     .set("message", "Invalid login token!");
         }
 
-        OneTimeToken oneTimeToken = tokens.get(id);
+        OneTimeToken oneTimeToken = tokens.remove(id);
         String loginToken = body.getString("login.token");
         if (!oneTimeToken.check(loginToken)) {
             response.setCode(400);
@@ -62,15 +62,13 @@ public class SessionRoutes implements RequestHandler {
                     .set("message", "Invalid login token!");
         }
 
-        tokens.remove(id);
-
         TokenPermission  session = TokenPermission.of("/v1/account/session/(?:logout|check)", ".*", HttpMethod.DELETE, HttpMethod.GET);
         TokenPermission cdn = TokenPermission.of("^/v1/cdn/(?!meta.*).*$", ".*", HttpMethod.GET);
 
         byte[] token = CNetSecurity.getTokenManager().generateToken(session, cdn).getKey();
         Json result = Json.empty().set("status", "200").set("token", PassphraseUtils.stringify(token));
         PassphraseUtils.erase(token);
-        response.print(Json.empty().set("status", "200").set("token", token));
+        Json.empty().set("status", "200").set("token", token);
         return result;
     }
 
@@ -84,7 +82,6 @@ public class SessionRoutes implements RequestHandler {
         CNetSecurity.getTokenManager().unregisterToken(token);
 
         return Json.empty().set("status", "200").set("message", "Token revoked");
-
     }
 
     @Route("/check")

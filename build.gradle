@@ -17,11 +17,11 @@ repositories {
 }
 
 dependencies {
-    implementation platform("de.craftsblock.craftscore:bom:3.8.6")
+    implementation platform("de.craftsblock.craftscore:bom:3.8.7")
     implementation "de.craftsblock.craftscore:json"
     implementation "de.craftsblock.craftscore:utils"
 
-    implementation "de.craftsblock:craftsnet:3.4.3-pre4"
+    implementation "de.craftsblock:craftsnet:3.4.3"
     implementation "de.craftsblock.craftsnet.modules:security:1.0.0-pre9"
 
     implementation "org.springframework.security:spring-security-crypto:6.4.4"

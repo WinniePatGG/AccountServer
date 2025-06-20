@@ -90,24 +90,26 @@ public class MinecraftRoutes implements RequestHandler {
         );
 
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        HttpResponse<Void> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+        HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-        if (httpResponse.statusCode() != 204) {
-            response.setCode(400);
+        if (httpResponse.statusCode() != 200)
             return Json.empty()
                     .set("status", "400")
                     .set("message", "You have failed the challenge!");
-        }
+
+        if ("verify".equalsIgnoreCase(request.retrieveParam("flag")))
+            return Json.empty().set("status", 200);
+
+        Json json = JsonParser.parse(httpResponse.body());
+        if (!json.contains("id")) return Json.empty().set("status", 400)
+                .set("message", "Received invalid payload from mojang server");
+
+        UUID uuid = UUID.fromString(json.getString("id").replaceFirst(
+                "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
+                "$1-$2-$3-$4-$5"
+        ));
 
         byte[] secret = PassphraseUtils.generateSecure(52, 72, true);
-
-        Optional<UUID> uuid = requestsUUID(name);
-        if (uuid.isEmpty()) {
-            response.setCode(400);
-            return Json.empty()
-                    .set("status", "400")
-                    .set("message", "Can not convert the name to a uuid!");
-        }
 
         long id = Snowflake.generate();
         OneTimeToken token = new OneTimeToken(secret, System.currentTimeMillis() + 1000 * 10, uuid);
@@ -121,22 +123,4 @@ public class MinecraftRoutes implements RequestHandler {
         PassphraseUtils.erase(secret);
         return result;
     }
-
-    private Optional<UUID> requestsUUID(String username) throws IOException, InterruptedException {
-        String url = "https://api.mojang.com/users/profiles/minecraft/%s".formatted(username);
-        HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        HttpResponse<String> httpResponse = httpClient.send(
-                httpRequest, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
-        );
-
-        Json json = JsonParser.parse(httpResponse.body());
-        if (!json.contains("id")) return Optional.empty();
-
-        String uuid = json.getString("id").replaceFirst(
-                "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
-                "$1-$2-$3-$4-$5"
-        );
-        return Optional.of(UUID.fromString(uuid));
-    }
-
 }
